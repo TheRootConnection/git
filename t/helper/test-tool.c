@@ -19,6 +19,7 @@ static struct test_cmd cmds[] = {
 	{ "bloom", cmd__bloom },
 	{ "bundle-uri", cmd__bundle_uri },
 	{ "chmtime", cmd__chmtime },
+	{ "cmp", cmd__cmp },
 	{ "config", cmd__config },
 	{ "crontab", cmd__crontab },
 	{ "csprng", cmd__csprng },
