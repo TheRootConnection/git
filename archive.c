@@ -333,25 +333,27 @@ int write_archive_entries(struct archiver_args *args,
 
 		put_be64(fake_oid.hash, i + 1);
 
-		strbuf_reset(&path_in_archive);
-		if (info->base)
-			strbuf_addstr(&path_in_archive, info->base);
-		strbuf_addstr(&path_in_archive, basename(path));
+		if (!info->content) {
+			strbuf_reset(&path_in_archive);
+			if (info->base)
+				strbuf_addstr(&path_in_archive, info->base);
+			strbuf_addstr(&path_in_archive, basename(path));
 
-		strbuf_reset(&content);
-		if (info->content)
-			err = write_entry(args, &fake_oid, path_in_archive.buf,
-					  path_in_archive.len,
+			strbuf_reset(&content);
+			if (strbuf_read_file(&content, path, info->stat.st_size) < 0)
+				err = error_errno(_("could not read '%s'"), path);
+			else
+				err = write_entry(args, &fake_oid, path_in_archive.buf,
+						  path_in_archive.len,
+						  info->stat.st_mode,
+						  content.buf, content.len);
+		} else {
+			err = write_entry(args, &fake_oid,
+					  path, strlen(path),
 					  info->stat.st_mode,
 					  info->content, info->stat.st_size);
-		else if (strbuf_read_file(&content, path,
-					  info->stat.st_size) < 0)
-			err = error_errno(_("could not read '%s'"), path);
-		else
-			err = write_entry(args, &fake_oid, path_in_archive.buf,
-					  path_in_archive.len,
-					  info->stat.st_mode,
-					  content.buf, content.len);
+		}
+
 		if (err)
 			break;
 	}
